@@ -26,7 +26,6 @@ function createBuffer(gl: WebGL2RenderingContext, data: number[], dataType: stri
     let dataArray = dataType === "Float32" ? new Float32Array(data)
         : new Uint16Array(data);
     gl.bufferData(bufType, dataArray, gl.STATIC_DRAW);
-    console.log(dataArray)
     return buffer;
 }
 
@@ -41,10 +40,12 @@ function main() {
     let vertexBuffer = createBuffer(gl, cube.vertexes, "Float32", "ARRAY_BUFFER");    
     let vertexesOrderBuffer = createBuffer(gl, cube.vertexOrder, "Uint16", "ELEMENT_ARRAY_BUFFER");
     let colorBuffer = createBuffer(gl, cube.colors, "Float32", "ARRAY_BUFFER");
+    let normalBuffer = createBuffer(gl, cube.vertexOrder, "Float32", "ARRAY_BUFFER");
 
     let buffers: IShapeBuffers = {
         vertexes: vertexBuffer,
         vertexOrder: vertexesOrderBuffer,
+        normals: normalBuffer,
         colors: colorBuffer
     }
 
@@ -68,11 +69,18 @@ function main() {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+            vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal"),
             vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+            normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
+
+            ambientColor: gl.getUniformLocation(shaderProgram, "uAmbientColor"),
+            specularColor: gl.getUniformLocation(shaderProgram, "uSpecularColor"),
+            lightPosition: gl.getUniformLocation(shaderProgram, "uLightPosition"),
+            viewPosition: gl.getUniformLocation(shaderProgram, "uViewPosition"),
         },
     };
 

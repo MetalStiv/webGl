@@ -3,10 +3,17 @@ interface IProgramInfo {
     attribLocations: {
         vertexPosition: number,
         vertexColor: number,
+        vertexNormal: number,
     },
     uniformLocations: {
+        ambientColor: WebGLUniformLocation,
+        specularColor: WebGLUniformLocation,
+        lightPosition: WebGLUniformLocation,
+        viewPosition: WebGLUniformLocation,
+
         projectionMatrix: WebGLUniformLocation,
         modelViewMatrix: WebGLUniformLocation,
+        normalMatrix: WebGLUniformLocation,
     },
 };
 

@@ -47,6 +47,10 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: IProgramInfo, buffer
       cubeRotation*0.3,
       [1, 0, 0]
     );
+
+    const normalMatrix = mat4.create();
+    mat4.invert(normalMatrix, modelViewMatrix);
+    mat4.transpose(normalMatrix, normalMatrix);
   
 
     setPositionAttribute(gl, buffers, programInfo);
@@ -55,7 +59,13 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: IProgramInfo, buffer
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertexOrder);
   
     gl.useProgram(programInfo.program);
-  
+
+    
+    gl.uniform4fv(programInfo.uniformLocations.ambientColor, new Float32Array([0.3, 0.3, 0.3, 0.0]));
+    gl.uniform4fv(programInfo.uniformLocations.specularColor, new Float32Array([0.9, 0.9, 0.8, 1]));
+    gl.uniform3fv(programInfo.uniformLocations.lightPosition, new Float32Array([-1.85, 1.8, 1.75]));
+    gl.uniform3fv(programInfo.uniformLocations.viewPosition, new Float32Array([0.85, 0.8, 0.75]));
+
     gl.uniformMatrix4fv(
       programInfo.uniformLocations.projectionMatrix,
       false,
@@ -63,6 +73,11 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: IProgramInfo, buffer
     );
     gl.uniformMatrix4fv(
       programInfo.uniformLocations.modelViewMatrix,
+      false,
+      modelViewMatrix
+    );
+    gl.uniformMatrix4fv(
+      programInfo.uniformLocations.normalMatrix,
       false,
       modelViewMatrix
     );
