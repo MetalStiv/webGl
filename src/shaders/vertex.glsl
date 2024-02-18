@@ -12,23 +12,23 @@ uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat4 uNormalMatrix;
 
-out vec4 vDiffColor;
-out vec4 vAmbientColor;
-out vec4 vSpecularColor;
-out vec3 vLightDirection;
-out vec3 vViewDirection;
-out vec3 vNormal;
+out vec4 vColor;
 
 void main(void)
 {
     gl_Position = uProjectionMatrix*uModelViewMatrix*aVertexPosition;
 
-    vDiffColor = aVertexColor;
-    vAmbientColor = uAmbientColor;
-    vSpecularColor = uSpecularColor;
-
     vec4 p = vec4(uModelViewMatrix*aVertexPosition);
-    vLightDirection = normalize(uLightPosition-p.xyz);
-    vViewDirection = normalize(uViewPosition-p.xyz);
-    vNormal = normalize((uNormalMatrix*vec4(aVertexNormal, 1.0)).xyz);
+    vec3 vLightDirection = normalize(uLightPosition-p.xyz);
+    vec3 vViewDirection = normalize(uViewPosition-p.xyz);
+    vec3 vNormal = normalize((uNormalMatrix*vec4(aVertexNormal, 1.0)).xyz);
+
+    const float specPower = 30.0;
+    vec3 vReflectedView = reflect(-vViewDirection, vNormal);
+    vec4 vDiff = aVertexColor*max(dot(-vNormal, vViewDirection), 0.0);
+    vDiff[3] = 1.0;
+    vec4 vSpec = uSpecularColor*pow(max(dot(vViewDirection, vReflectedView), 0.0), specPower);
+    vSpec[3] = 1.0;
+    
+    vColor = uAmbientColor+vDiff+vSpec;
 }
