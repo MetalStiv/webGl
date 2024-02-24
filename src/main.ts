@@ -1,32 +1,25 @@
-import { drawScene } from "./drawScene";
-import IProgramInfo from "./types/IProgramInfo";
-import IShape from "./types/IShape";
-import IShapeBuffers from "./types/IShapeBuffers";
+import { clearScene1, initScene1 } from "./scene1";
+import { clearScene2, initScene2 } from "./scene2";
 
 const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
 const gl: WebGL2RenderingContext = canvas.getContext("webgl2");
+const txtContext: CanvasRenderingContext2D = canvas.getContext("2d");
 
-let cubeRotation: number = 0.0;
-let deltaTime: number = 0;
+let sceneNumber: number = 1;
 
-main();
+document.getElementById('scene1').addEventListener('click', e => {
+    sceneNumber = 1;
+    main()
+});
 
-function createShader(gl: WebGL2RenderingContext, type: number, source: string) {
-    let shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    return shader;
-}
+document.getElementById('scene2').addEventListener('click', e => {
+    sceneNumber = 2;
+    main()
+});
 
-function createBuffer(gl: WebGL2RenderingContext, data: number[], dataType: string, bufferType: string) {
-    let buffer = gl.createBuffer();
-    let bufType = bufferType === "ARRAY_BUFFER" ? gl.ARRAY_BUFFER
-        : gl.ELEMENT_ARRAY_BUFFER
-    gl.bindBuffer(bufType, buffer);
-    let dataArray = dataType === "Float32" ? new Float32Array(data)
-        : new Uint16Array(data);
-    gl.bufferData(bufType, dataArray, gl.STATIC_DRAW);
-    return buffer;
+function clear() {
+    clearScene1(gl);
+    clearScene2(gl);
 }
 
 function main() {
@@ -35,65 +28,12 @@ function main() {
         return;
     }
 
-    let cube: IShape = require("./assets/cube.json");
-
-    let vertexBuffer = createBuffer(gl, cube.vertexes, "Float32", "ARRAY_BUFFER");    
-    let vertexesOrderBuffer = createBuffer(gl, cube.vertexOrder, "Uint16", "ELEMENT_ARRAY_BUFFER");
-    let colorBuffer = createBuffer(gl, cube.colors, "Float32", "ARRAY_BUFFER");
-    let normalBuffer = createBuffer(gl, cube.vertexOrder, "Float32", "ARRAY_BUFFER");
-
-    let buffers: IShapeBuffers = {
-        vertexes: vertexBuffer,
-        vertexOrder: vertexesOrderBuffer,
-        normals: normalBuffer,
-        colors: colorBuffer
+    if (sceneNumber === 1){
+        clear();
+        initScene1(gl);
     }
-
-    let vertexShaderSource = require("./shaders/vertex.glsl");
-    let fragmentShaderSource = require("./shaders/fragment.glsl");
-
-    let vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    let fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-
-    let shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        alert(`Unable to initialize the shader program: ${gl.getProgramInfoLog(shaderProgram)}`);
-        return null;
+    if (sceneNumber === 2){
+        clear();
+        initScene2(gl);
     }
-
-    const programInfo: IProgramInfo = {
-        program: shaderProgram,
-        attribLocations: {
-            vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-            vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal"),
-            vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-        },
-        uniformLocations: {
-            projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
-            modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-            normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
-
-            ambientColor: gl.getUniformLocation(shaderProgram, "uAmbientColor"),
-            specularColor: gl.getUniformLocation(shaderProgram, "uSpecularColor"),
-            lightPosition: gl.getUniformLocation(shaderProgram, "uLightPosition"),
-            viewPosition: gl.getUniformLocation(shaderProgram, "uViewPosition"),
-        },
-    };
-
-    let then = 0;
-  
-    function render(now: number) {
-        now *= 0.001;
-        deltaTime = now-then;
-        then = now;
-        cubeRotation += deltaTime;
-        drawScene(gl, programInfo, buffers, cubeRotation);
-        requestAnimationFrame(render);
-    }
-
-    requestAnimationFrame(render);
 }

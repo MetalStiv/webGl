@@ -1,4 +1,4 @@
-interface IProgramInfo {
+interface IFongProgramInfo {
     program: WebGLProgram,
     attribLocations: {
         vertexPosition: number,
@@ -17,4 +17,4 @@ interface IProgramInfo {
     },
 };
 
-export default IProgramInfo;
+export default IFongProgramInfo;
