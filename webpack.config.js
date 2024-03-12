@@ -5,19 +5,27 @@ module.exports = {
   entry: './src/main.ts',
   devServer: {
     open: true, // Set to false to prevent the dev server from opening up automatically
-    static: './dist'
+    static: './dist',
   },
   devtool: 'eval-source-map',
   module: {
     rules: [
       {
-        test: /\.glsl$/, // regex to match files with the .glsl extension
+        test: /\.glsl$/,
         loader: 'webpack-glsl-loader'
       },
       {
-        test: /\.ts$/, // regex to match files with the .ts extension
+        test: /\.ts$/,
         loader: 'ts-loader'
-      }
+      },
+      { 
+        test: /\.xml$/, 
+        loader: 'xml-loader' 
+      },
+      {
+        test: /\.png$/,
+        loader: 'file-loader'
+      },
     ]
   },
   output: {

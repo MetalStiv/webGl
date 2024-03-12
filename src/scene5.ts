@@ -1,7 +1,8 @@
-import IFongProgramInfo from "./types/IFongProgramInfo";
 import IShape from "./types/IShape";
 import IShapeBuffers from "./types/IShapeBuffers";
-import { createBuffer, createShader } from "./webglUtils";
+import ITextureFongProgramInfo from "./types/ITextureFongProgramInfo";
+import { createBuffer, createShader, loadTexture, setTexImage } from "./webglUtils";
+import img from './assets/textures/sand.png';
 
 var mat4 = require('gl-mat4');
 
@@ -10,55 +11,62 @@ var deltaTime: number = 0;
 var fongShaderProgram: WebGLProgram; 
 var requestFrame: number;
 
-function initScene1(gl: WebGL2RenderingContext){
+function initScene5(gl: WebGL2RenderingContext){
     var cube: IShape = require("./assets/cube.json");
 
     var vertexBuffer: WebGLBuffer = createBuffer(gl, cube.vertexes, "Float32", "ARRAY_BUFFER");    
     var vertexesOrderBuffer: WebGLBuffer = createBuffer(gl, cube.vertexOrder, "Uint16", "ELEMENT_ARRAY_BUFFER");
-    var colorBuffer: WebGLBuffer = createBuffer(gl, cube.colors, "Float32", "ARRAY_BUFFER");
     var normalBuffer: WebGLBuffer = createBuffer(gl, cube.vertexOrder, "Float32", "ARRAY_BUFFER");
+    var textureBuffer: WebGLBuffer = createBuffer(gl, cube.textureCoordinates, "Float32", "ARRAY_BUFFER");
 
     var buffers: IShapeBuffers = {
         vertexes: vertexBuffer,
         vertexOrder: vertexesOrderBuffer,
         normals: normalBuffer,
-        colors: colorBuffer
+        textureCoords: textureBuffer,
     }
 
-    var fongVertexShaderSource = require("./shaders/fong-vertex.glsl");
-    var fongFragmentShaderSource = require("./shaders/fong-fragment.glsl");
+    var textureFongVertexShaderSource = require("./shaders/texture-fong-vertex.glsl");
+    var textureFongFragmentShaderSource = require("./shaders/texture-fong-fragment.glsl");
 
-    var fongVertexShader: WebGLShader = createShader(gl, gl.VERTEX_SHADER, fongVertexShaderSource);
-    var fongFragmentShader: WebGLShader = createShader(gl, gl.FRAGMENT_SHADER, fongFragmentShaderSource);
+    var textureFongVertexShader: WebGLShader = createShader(gl, gl.VERTEX_SHADER, textureFongVertexShaderSource);
+    var textureFongFragmentShader: WebGLShader = createShader(gl, gl.FRAGMENT_SHADER, textureFongFragmentShaderSource);
 
-    fongShaderProgram = gl.createProgram();
-    gl.attachShader(fongShaderProgram, fongVertexShader);
-    gl.attachShader(fongShaderProgram, fongFragmentShader);
-    gl.linkProgram(fongShaderProgram);
+    var textureFongShaderProgram: WebGLProgram = gl.createProgram();
+    gl.attachShader(textureFongShaderProgram, textureFongVertexShader);
+    gl.attachShader(textureFongShaderProgram, textureFongFragmentShader);
+    gl.linkProgram(textureFongShaderProgram);
 
-    if (!gl.getProgramParameter(fongShaderProgram, gl.LINK_STATUS)) {
-        alert(`Unable to initialize the shader program: ${gl.getProgramInfoLog(fongShaderProgram)}`);
+    if (!gl.getProgramParameter(textureFongShaderProgram, gl.LINK_STATUS)) {
+        alert(`Unable to initialize the shader program: ${gl.getProgramInfoLog(textureFongShaderProgram)}`);
         return null;
     }
 
-    const fongProgramInfo: IFongProgramInfo = {
-        program: fongShaderProgram,
+    const textureFongProgramInfo: ITextureFongProgramInfo = {
+        program: textureFongShaderProgram,
         attribLocations: {
-            vertexPosition: gl.getAttribLocation(fongShaderProgram, "aVertexPosition"),
-            vertexNormal: gl.getAttribLocation(fongShaderProgram, "aVertexNormal"),
-            vertexColor: gl.getAttribLocation(fongShaderProgram, "aVertexColor"),
+            vertexPosition: gl.getAttribLocation(textureFongShaderProgram, "aVertexPosition"),
+            vertexNormal: gl.getAttribLocation(textureFongShaderProgram, "aVertexNormal"),
+            vertexTextureCoord: gl.getAttribLocation(textureFongShaderProgram, "aTextureCoord"),
         },
         uniformLocations: {
-            projectionMatrix: gl.getUniformLocation(fongShaderProgram, "uProjectionMatrix"),
-            modelViewMatrix: gl.getUniformLocation(fongShaderProgram, "uModelViewMatrix"),
-            normalMatrix: gl.getUniformLocation(fongShaderProgram, "uNormalMatrix"),
+            projectionMatrix: gl.getUniformLocation(textureFongShaderProgram, "uProjectionMatrix"),
+            modelViewMatrix: gl.getUniformLocation(textureFongShaderProgram, "uModelViewMatrix"),
+            normalMatrix: gl.getUniformLocation(textureFongShaderProgram, "uNormalMatrix"),
 
-            ambientColor: gl.getUniformLocation(fongShaderProgram, "uAmbientColor"),
-            specularColor: gl.getUniformLocation(fongShaderProgram, "uSpecularColor"),
-            lightPosition: gl.getUniformLocation(fongShaderProgram, "uLightPosition"),
-            viewPosition: gl.getUniformLocation(fongShaderProgram, "uViewPosition"),
+            ambientColor: gl.getUniformLocation(textureFongShaderProgram, "uAmbientColor"),
+            specularColor: gl.getUniformLocation(textureFongShaderProgram, "uSpecularColor"),
+            lightPosition: gl.getUniformLocation(textureFongShaderProgram, "uLightPosition"),
+            viewPosition: gl.getUniformLocation(textureFongShaderProgram, "uViewPosition"),
+
+            sampler: gl.getUniformLocation(textureFongShaderProgram, "uSampler"),
         },
     };
+
+    const texture: WebGLTexture = loadTexture(gl, img);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
 
     var then = 0;
   
@@ -67,14 +75,14 @@ function initScene1(gl: WebGL2RenderingContext){
         deltaTime = now-then;
         then = now;
         cubeRotation += deltaTime;
-        drawScene1(gl, fongProgramInfo, buffers, cubeRotation);
+        drawScene5(gl, textureFongProgramInfo, buffers, cubeRotation);
         requestAnimationFrame(render);
     }
 
     requestFrame = requestAnimationFrame(render);
 }
 
-function drawScene1(gl: WebGL2RenderingContext, programInfo: IFongProgramInfo, buffers: IShapeBuffers, cubeRotation: number) {
+function drawScene5(gl: WebGL2RenderingContext, programInfo: ITextureFongProgramInfo, buffers: IShapeBuffers, cubeRotation: number) {
     gl.clearColor(0.5, 0.5, 0.5, 1.0);
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST); 
@@ -125,7 +133,7 @@ function drawScene1(gl: WebGL2RenderingContext, programInfo: IFongProgramInfo, b
   
 
     setPositionAttribute(gl, buffers, programInfo);
-    setColorAttribute(gl, buffers, programInfo);
+    setTextureAttribute(gl, buffers, programInfo);
   
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertexOrder);
   
@@ -153,6 +161,8 @@ function drawScene1(gl: WebGL2RenderingContext, programInfo: IFongProgramInfo, b
       modelViewMatrix
     );
 
+    gl.uniform1i(programInfo.uniformLocations.sampler, 0);
+
     {
         const vertexCount: number = 36;
         const type: number = gl.UNSIGNED_SHORT;
@@ -161,12 +171,12 @@ function drawScene1(gl: WebGL2RenderingContext, programInfo: IFongProgramInfo, b
     }
 }
 
-function clearScene1(gl: WebGL2RenderingContext){
+function clearScene5(gl: WebGL2RenderingContext){
     cancelAnimationFrame(requestFrame);
     gl.deleteProgram(fongShaderProgram);
 }
   
-function setPositionAttribute(gl: WebGL2RenderingContext, buffers: IShapeBuffers, programInfo: IFongProgramInfo) {
+function setPositionAttribute(gl: WebGL2RenderingContext, buffers: IShapeBuffers, programInfo: ITextureFongProgramInfo) {
     const numComponents: number = 3;
     const type: number = gl.FLOAT; // the data in the buffer is 32bit floats
     const normalize: boolean = false; // don't normalize
@@ -184,22 +194,22 @@ function setPositionAttribute(gl: WebGL2RenderingContext, buffers: IShapeBuffers
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 }
 
-function setColorAttribute(gl: WebGL2RenderingContext, buffers: IShapeBuffers, programInfo: IFongProgramInfo) {
-    const numComponents: number = 4;
-    const type: number = gl.FLOAT;
-    const normalize: boolean = false;
-    const stride: number = 0;
-    const offset: number = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
+function setTextureAttribute(gl: WebGL2RenderingContext, buffers: IShapeBuffers, programInfo: ITextureFongProgramInfo) {
+    const num = 2; // every coordinate composed of 2 values
+    const type = gl.FLOAT; // the data in the buffer is 32-bit float
+    const normalize = false; // don't normalize
+    const stride = 0; // how many bytes to get from one set to the next
+    const offset = 0; // how many bytes inside the buffer to start from
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoords);
     gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexColor,
-        numComponents,
+        programInfo.attribLocations.vertexTextureCoord,
+        num,
         type,
         normalize,
         stride,
         offset
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexTextureCoord);
 }
 
-export { initScene1, clearScene1 };
+export { initScene5, clearScene5 };
