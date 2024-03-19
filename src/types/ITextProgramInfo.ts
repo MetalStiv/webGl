@@ -1,7 +1,15 @@
 interface ITextProgramInfo {
     program: WebGLProgram,
-    attribLocations: {},
-    uniformLocations: {},
+    attribLocations: {
+        vertexPosition: number,
+        vertexTextureCoord: number,
+        vertexColor: number,
+    },
+    uniformLocations: {
+        projectionMatrix: WebGLUniformLocation,
+        modelViewMatrix: WebGLUniformLocation,
+        sampler: WebGLUniformLocation,
+    },
 };
 
 export default ITextProgramInfo;

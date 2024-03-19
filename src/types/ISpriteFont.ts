@@ -8,7 +8,7 @@ const textureSymbol: unique symbol = Symbol();
 const nameSymbol: unique symbol = Symbol();
 
 export interface ISpriteFont {
-    [charsSymbol]: {[id: string]: ISpriteFontChar};
+    [charsSymbol]: Map<number, ISpriteFontChar>;
     [lineHeightSymbol]: number,
     [textureSymbol]: HTMLImageElement,
     [nameSymbol]: string,
@@ -19,13 +19,12 @@ export interface ISpriteFont {
 
 export const createFont = () => {
     const spriteFont: ISpriteFont = {
-        [charsSymbol]: {},
+        [charsSymbol]: new Map(),
         [lineHeightSymbol]: 0,
         [textureSymbol]: null,
         [nameSymbol]: '',
         getChar(unicode: number){
-            console.log(this[charsSymbol])
-            return this[charsSymbol][unicode]!;
+            return this[charsSymbol].get(unicode)!;
         },
         load(gl: WebGL2RenderingContext, data: any, texture: HTMLImageElement, name: string){
             this[nameSymbol] = name;
@@ -33,15 +32,15 @@ export const createFont = () => {
             var lineHeight =  data.font.common.lineHeight;
             this[lineHeightSymbol] = lineHeight;
             for(var ch of data.font.chars[0].char){
-                var id: number = ch['$'].id;
-                var x: number = ch['$'].x;
-                var y: number = ch['$'].y;
+                var id: number = parseInt(ch['$'].id);
+                var x: number = parseInt(ch['$'].x);
+                var y: number = parseInt(ch['$'].y);
         
-                var width: number = ch['$'].width;
-                var height: number = ch['$'].height;
+                var width: number = parseInt(ch['$'].width);
+                var height: number = parseInt(ch['$'].height);
                 var xAdvance: number = parseInt(ch['$'].xadvance);
-                var xOffset: number = ch['$'].xoffset;
-                var yOffset: number = ch['$'].yoffset;
+                var xOffset: number = parseInt(ch['$'].xoffset);
+                var yOffset: number = parseInt(ch['$'].yoffset);
         
                 var x1: number = x/texture.width;
                 var y1: number = y/texture.height;
@@ -55,13 +54,12 @@ export const createFont = () => {
                     d: vec2.fromValues(x1, y2),
                 }
 
-                this[charsSymbol][id] = {
+                this[charsSymbol].set(id, {
                     textureCoord: quad,
                     size: vec2.fromValues(width, height),
                     advance: xAdvance,
                     offset: vec2.fromValues(xOffset, yOffset),
-                }
-                
+                })
             }
         },
         getName(){

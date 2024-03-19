@@ -30,7 +30,7 @@ void main(){
 	col *= 0.8+0.2*cos(128.0*abs(d));
 	col = mix(col, vec3(1.0), 1.0-smoothstep(0.0, 0.015, abs(d)));
 
-    if(uMouse.z > 0)
+    if(uMouse.z > 0.0)
     {
         d = sdPie(m, vec2(sin(t), cos(t)), 0.5);
         col = mix(col, vec3(1.0, 1.0, 0.0), 1.0-smoothstep(0.0, 0.005, abs(length(p-m)-abs(d))-0.0025));

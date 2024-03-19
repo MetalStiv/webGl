@@ -2,18 +2,19 @@
 
 precision highp float;
 
-layout(location = 0) in vec2 aPosition;
-layout(location = 1) in vec2 aTexCoords;
-layout(location = 2) in vec3 aColor;
+in vec3 aVertexPosition;
+in vec2 aVertexTexCoord;
+in vec3 aVertexColor;
 
 out vec2 vTexCoords;
 out vec3 vColor; 
 
-uniform mat4 projectionViewMatrix;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
 
 void main()
 {
-    gl_Position =  projectionViewMatrix * vec4(aPosition, 0.0, 1.0);
-    vTexCoords = aTexCoords;
-    vColor = aColor;
+    gl_Position = uProjectionMatrix*uModelViewMatrix*vec4(aVertexPosition, 1.0);
+    vTexCoords = aVertexTexCoord;
+    vColor = aVertexColor;
 }
